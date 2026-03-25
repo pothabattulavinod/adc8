@@ -26,8 +26,8 @@ jobs:
         run: |
           set -e
 
-          INPUT_URL="https://cdn.cdngo.site/Jalsa_(2008)_720p.mkv"
-          OUTPUT_FOLDER="jalsa"
+          INPUT_URL="https://cdn.cdngo.site/Stalin_(2006)_720p.mkv"
+          OUTPUT_FOLDER="stalin"
           mkdir -p "$OUTPUT_FOLDER"
           OUTPUT_PATH="$OUTPUT_FOLDER/playlist.m3u8"
 
@@ -70,7 +70,7 @@ jobs:
           git config --global user.name "pothabattulavinod"
           git config --global user.email "vinodyadavpothabattula666@gmail.com"
 
-          git add jalsa
+          git add stalin
 
           if ! git diff-index --quiet HEAD; then
             git commit -m "Add HLS (universal stereo audio) [skip ci]"
