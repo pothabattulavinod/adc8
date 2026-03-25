@@ -1,0 +1,84 @@
+name: MKV to HLS ( Universal)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  convert:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣ Checkout repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      # 2️⃣ Install ffmpeg
+      - name: Install ffmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      # 3️⃣ Convert MKV to HLS (Video Copy + Telugu Audio - iBOMMA style)
+      - name: Convert MKV to HLS (Universal Audio)
+        run: |
+          set -e
+
+          INPUT_URL="https://cdn.cdngo.site/Pilla_Zamindar_(2011)_720p.mkv"
+          OUTPUT_FOLDER="pj"
+          mkdir -p "$OUTPUT_FOLDER"
+          OUTPUT_PATH="$OUTPUT_FOLDER/playlist.m3u8"
+
+          echo "🎬 Using Telugu audio (universal stereo)..."
+
+          ffmpeg -y -i "$INPUT_URL" \
+            -map 0:v:0 \
+            -map 0:a:m:language:tel \
+            -af "volume=1.5,aresample=matrix_encoding=dplii" \
+            -c:v copy \
+            -c:a aac -b:a 192k -ac 2 \
+            -f hls \
+            -hls_time 10 \
+            -hls_playlist_type vod \
+            -hls_segment_filename "$OUTPUT_FOLDER/segment%03d.ts" \
+            "$OUTPUT_PATH" || \
+          {
+            echo "⚠️ Telugu stream not found, falling back to first audio..."
+
+            ffmpeg -y -i "$INPUT_URL" \
+              -map 0:v:0 \
+              -map 0:a:0 \
+              -af "volume=1.5,aresample=matrix_encoding=dplii" \
+              -c:v copy \
+              -c:a aac -b:a 192k -ac 2 \
+              -f hls \
+              -hls_time 10 \
+              -hls_playlist_type vod \
+              -hls_segment_filename "$OUTPUT_FOLDER/segment%03d.ts" \
+              "$OUTPUT_PATH"
+          }
+
+          echo "✅ HLS conversion completed. Output: $OUTPUT_PATH"
+
+      # 4️⃣ Commit and push results
+      - name: Commit and push HLS output
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+        run: |
+          git config --global user.name "pothabattulavinod"
+          git config --global user.email "vinodyadavpothabattula666@gmail.com"
+
+          git add pj
+
+          if ! git diff-index --quiet HEAD; then
+            git commit -m "Add HLS (universal stereo audio) [skip ci]"
+          else
+            echo "No new files to commit."
+          fi
+
+          git remote remove origin || true
+          git remote add origin https://x-access-token:${GH_PAT}@github.com/pothabattulavinod/adc8.git
+          git push origin HEAD:main
+          
