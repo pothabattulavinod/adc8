@@ -1,0 +1,97 @@
+name: MKV to HLS (Friendly)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  convert:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣ Checkout repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+
+      # 2️⃣ Install ffmpeg
+      - name: Install ffmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      # 3️⃣ Convert MKV to HLS (480p Low Data - iBOMMA Style)
+      - name: Convert MKV to HLS (Internet Friendly)
+        run: |
+          set -e
+
+          INPUT_URL="https://cdn.cdngo.site/With_Love_2026_Telugu_700MB.mkv"
+          OUTPUT_FOLDER="aw"
+          mkdir -p "$OUTPUT_FOLDER"
+          OUTPUT_PATH="$OUTPUT_FOLDER/playlist.m3u8"
+
+          echo "🎬 Starting iBOMMA-style low-data encoding..."
+
+          ffmpeg -y -i "$INPUT_URL" \
+            -map 0:v:0 \
+            -map 0:a:m:language:tel \
+            -vf "scale=854:480" \
+            -c:v libx264 \
+            -preset veryfast \
+            -crf 23 \
+            -maxrate 800k \
+            -bufsize 1600k \
+            -pix_fmt yuv420p \
+            -c:a aac -b:a 64k -ac 2 \
+            -af "volume=1.5,aresample=matrix_encoding=dplii" \
+            -f hls \
+            -hls_time 6 \
+            -hls_playlist_type vod \
+            -hls_flags independent_segments \
+            -hls_segment_filename "$OUTPUT_FOLDER/segment%03d.ts" \
+            "$OUTPUT_PATH" || \
+          {
+            echo "⚠️ Telugu audio not found, using default audio..."
+
+            ffmpeg -y -i "$INPUT_URL" \
+              -map 0:v:0 \
+              -map 0:a:0 \
+              -vf "scale=854:480" \
+              -c:v libx264 \
+              -preset veryfast \
+              -crf 23 \
+              -maxrate 800k \
+              -bufsize 1600k \
+              -pix_fmt yuv420p \
+              -c:a aac -b:a 64k -ac 2 \
+              -af "volume=1.5,aresample=matrix_encoding=dplii" \
+              -f hls \
+              -hls_time 6 \
+              -hls_playlist_type vod \
+              -hls_flags independent_segments \
+              -hls_segment_filename "$OUTPUT_FOLDER/segment%03d.ts" \
+              "$OUTPUT_PATH"
+          }
+
+          echo "✅ HLS conversion completed: $OUTPUT_PATH"
+
+      # 4️⃣ Commit and push results
+      - name: Commit and push HLS output
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+        run: |
+          git config --global user.name "pothabattulavinod"
+          git config --global user.email "vinodyadavpothabattula666@gmail.com"
+
+          git add aw
+
+          if ! git diff-index --quiet HEAD; then
+            git commit -m "Add HLS (480p internet-friendly) [skip ci]"
+          else
+            echo "No new files to commit."
+          fi
+
+          git remote remove origin || true
+          git remote add origin https://x-access-token:${GH_PAT}@github.com/pothabattulavinod/adc8.git
+          git push origin HEAD:main
