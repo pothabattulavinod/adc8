@@ -26,8 +26,8 @@ jobs:
         run: |
           set -e
 
-          INPUT_URL="https://cdn.cdngo.site/Arya-2_(2009)_720p.mkv"
-          OUTPUT_FOLDER="aarya2"
+          INPUT_URL="https://cdn.cdngo.site/KGF_(2018)_720p.mkv"
+          OUTPUT_FOLDER="kgf"
           mkdir -p "$OUTPUT_FOLDER"
           OUTPUT_PATH="$OUTPUT_FOLDER/playlist.m3u8"
 
@@ -70,7 +70,7 @@ jobs:
           git config --global user.name "pothabattulavinod"
           git config --global user.email "vinodyadavpothabattula666@gmail.com"
 
-          git add aarya2
+          git add kgf
 
           if ! git diff-index --quiet HEAD; then
             git commit -m "Add HLS (universal stereo audio) [skip ci]"
