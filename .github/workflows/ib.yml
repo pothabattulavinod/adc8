@@ -26,7 +26,7 @@ jobs:
         run: |
           set -e
 
-          INPUT_URL="https://cdn.cdngo.site/KGF_(2018)_720p.mkv"
+          INPUT_URL="https://cdn.fukggl.buzz/Movies4u.Foo.Jana.nayagan.2026.480p.WEB-DL.Tamil.AAC2.0.H.264.mkv?token=8d4a6893bd40b9e47851300919015ea6_157"
           OUTPUT_FOLDER="kgf"
           mkdir -p "$OUTPUT_FOLDER"
           OUTPUT_PATH="$OUTPUT_FOLDER/playlist.m3u8"
